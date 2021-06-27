@@ -11,9 +11,11 @@ app.get('/', (req, res) =>
     res.sendFile(__dirname + '/index.html')
 })
 
-io.on('connection', (socket) =>
+io.on('connection', socket =>
 {
-    console.log('A user connected')
+    io.emit('join', `Socket ID ${socket.id} joined`)
+    console.log(`Socket ID ${socket.id} joined`)
+
     socket.on('chat message', msg =>
     {
         io.emit('chat message', msg)
@@ -22,7 +24,8 @@ io.on('connection', (socket) =>
 
     socket.on('disconnect', () =>
     {
-        console.log('User disconnected')
+        io.emit('leave', `Socket ID ${socket.id} left`)
+        console.log(`Socket ID ${socket.id} left`)
     })
 })
 
