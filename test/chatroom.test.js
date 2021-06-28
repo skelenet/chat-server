@@ -1,6 +1,6 @@
 const { createServer } = require('http')
 const { Server } = require('socket.io')
-const Chatroom = require('../src/chatroom')
+const Chatroom = require('../src/chatroomHandler')
 const Client = require('socket.io-client')
 
 let io, serverSocket, clientSocket, chatroom

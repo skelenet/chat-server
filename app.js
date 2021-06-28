@@ -1,9 +1,10 @@
 const { io } = require('./src/server')
-const Chatroom = require('./src/chatroom')
 
-const chatroom = new Chatroom(io)
+const registerChatroomHandlers = require('./src/chatroomHandler')
 
-io.on('connection', socket =>
+const onConnection = socket =>
 {
-    chatroom.connect(socket)
-})
+    registerChatroomHandlers(io, socket)
+}
+
+io.on('connection', onConnection)

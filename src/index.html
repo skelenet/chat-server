@@ -28,6 +28,7 @@
         <script src="https://cdn.socket.io/4.1.2/socket.io.min.js"></script>
         <script>
             var socket = io()
+            socket.emit('chatroom:connect')
 
             var messages = document.getElementById('messages')
             var form = document.getElementById('form')
@@ -38,14 +39,14 @@
                 e.preventDefault()
                 if(input.value)
                 {
-                    socket.emit('chat message', input.value)
+                    socket.emit('chatroom:chat_message', input.value)
                     input.value = ''
                 }
             })
 
-            socket.on('chat message', msg => addChatMessage(msg))
-            socket.on('join', logMsg => addChatMessage(logMsg))
-            socket.on('leave', logMsg => addChatMessage(logMsg))
+            socket.on('chatroom:chat_message', msg => addChatMessage(msg))
+            socket.on('chatroom:join', logMsg => addChatMessage(logMsg))
+            socket.on('chatroom:leave', logMsg => addChatMessage(logMsg))
 
             addChatMessage = msg =>
             {
