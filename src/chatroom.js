@@ -5,11 +5,11 @@ function Chatroom(io)
 
 Chatroom.prototype.connect = function connect(socket)
 {
-    this.io.emit('join', `Socket ID ${socket.id} joined`)
+    this.io.emit('join', `User ID ${socket.id} joined`)
 
     socket.on('disconnect', () =>
     {
-        this.io.emit('leave', `Socket ID ${socket.id} left`)
+        this.io.emit('leave', `User ID ${socket.id} left`)
     })
 
     socket.on('chat message', msg =>
