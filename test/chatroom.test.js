@@ -24,7 +24,7 @@ describe('Chatroom', () =>
             const port = httpServer.address().port
             clientSocket = new Client(`http://localhost:${port}`)
     
-            io.on('connection', onConnection)
+            io.on('connect', onConnection)
             clientSocket.on('connect', done)
         })
     })
@@ -41,7 +41,7 @@ describe('Chatroom', () =>
         it('connects to the backend via socket.io', done =>
         {
             // Make sure socket exists on connection
-            serverSocket.on('connection', socket =>
+            serverSocket.on('connect', socket =>
             {
                 expect(socket).toBeDefined()
             })
@@ -60,10 +60,10 @@ describe('Chatroom', () =>
     {
         it('should broadcast to connected clients when someone connects', done =>
         {
-            serverSocket.emit('join', `User ID ${clientSocket.id} joined`)
-            clientSocket.on('join', msg =>
+            clientSocket.emit('chatroom:connect')
+            serverSocket.on('chatroom:connect', () =>
             {
-                expect(msg).toBe(`User ID ${clientSocket.id} joined`)
+                expect(serverSocket).toBeDefined()
                 done()
             })
         })

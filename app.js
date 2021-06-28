@@ -7,4 +7,4 @@ const onConnection = socket =>
     registerChatroomHandlers(io, socket)
 }
 
-io.on('connection', onConnection)
+io.on('connect', onConnection)
