@@ -23,7 +23,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        node-version: [10.x, 11.x, 12.x]
+        node-version: [10.x, 12.x, 14.x]
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
