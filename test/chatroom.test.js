@@ -58,12 +58,13 @@ describe('Chatroom', () =>
 
     describe('Chat Events', () =>
     {
-        it('should broadcast to connected clients when someone connects', done =>
+        it('should broadcast a global join message when someone connects', done =>
         {
             clientSocket.emit('chatroom:connect')
-            serverSocket.on('chatroom:connect', () =>
+            clientSocket.on('chatroom:join', logMsg =>
             {
-                expect(serverSocket).toBeDefined()
+                expect(logMsg).toBeDefined()
+                expect(logMsg).toBe(`User ID ${clientSocket.id} joined`)
                 done()
             })
         })
