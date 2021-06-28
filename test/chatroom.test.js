@@ -1,9 +1,10 @@
 const { createServer } = require('http')
 const { Server } = require('socket.io')
-const Chatroom = require('../src/chatroomHandler')
 const Client = require('socket.io-client')
 
-let io, serverSocket, clientSocket, chatroom
+const registerChatroomHandlers = require('../src/chatroomHandler')
+
+let io, serverSocket, clientSocket
 
 describe('Chatroom', () =>
 {
@@ -11,18 +12,19 @@ describe('Chatroom', () =>
     {
         const httpServer = createServer()
         io = new Server(httpServer)
-        chatroom = new Chatroom(io)
-    
+
+        const onConnection = socket =>
+        {
+            serverSocket = socket
+            registerChatroomHandlers(io, socket)
+        }
+
         httpServer.listen(() =>
         {
             const port = httpServer.address().port
             clientSocket = new Client(`http://localhost:${port}`)
     
-            io.on('connection', socket =>
-            {
-                serverSocket = socket
-                chatroom.connect(socket)
-            })
+            io.on('connection', onConnection)
             clientSocket.on('connect', done)
         })
     })
@@ -38,11 +40,13 @@ describe('Chatroom', () =>
     {
         it('connects to the backend via socket.io', done =>
         {
+            // Make sure socket exists on connection
             serverSocket.on('connection', socket =>
             {
                 expect(socket).toBeDefined()
             })
 
+            // Confirm server-client handshake
             serverSocket.emit('echo', 'Hello World!')
             clientSocket.once('echo', msg =>
             {
