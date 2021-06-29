@@ -57,7 +57,7 @@ describe('Chatroom', () =>
 
     describe('Chat Events', () =>
     {
-        it('should broadcast a global join message when someone connects', done =>
+        it('should broadcast global join message when someone connects', done =>
         {
             const server = createServer()
             const sio = new Server(server)
@@ -66,7 +66,7 @@ describe('Chatroom', () =>
             {
                 const client = createClient(server, { forceNew: true })
                 const client2 = createClient(server, { forceNew: true })
-                let msg = ''
+                let msg = undefined
 
                 sio.on('connect', socket =>
                 {
@@ -87,6 +87,41 @@ describe('Chatroom', () =>
                 // Otherwise, the tests will fail prematurely.
                 setTimeout(() => {
                     expect(msg).toBe(`User ID ${client.id} joined`)
+                    cleanup(sio, [client, client2], done)
+                }, 300)
+            })
+        })
+
+        it('should broadcast global leave message when someone disconnects', done =>
+        {
+            const server = createServer()
+            const sio = new Server(server)
+
+            server.listen(() =>
+            {
+                const client = createClient(server, { forceNew: true })
+                const client2 = createClient(server, { forceNew: true })
+                let clientID, msg = undefined
+
+                sio.on('connect', socket =>
+                {
+                    registerChatroomhandlers(sio, socket)
+
+                    client.emit('chatroom:connect')
+                    client2.on('chatroom:join', () =>
+                    {
+                        clientID = client.id
+
+                        setTimeout(() => client.disconnect(), 50)
+                        client2.on('chatroom:leave', logMsg =>
+                        {
+                            expect(logMsg).toBeDefined()
+                            msg = logMsg
+                        })
+                    })
+                })
+                setTimeout(() => {
+                    expect(msg).toBe(`User ID ${clientID} left`)
                     cleanup(sio, [client, client2], done)
                 }, 300)
             })
