@@ -57,6 +57,8 @@ describe('Chatroom', () =>
 
     describe('Chat Events', () =>
     {
+        jest.setTimeout(3000)
+
         it('should broadcast global join message when someone connects', done =>
         {
             const server = createServer()
