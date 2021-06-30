@@ -5,7 +5,7 @@ module.exports = (io, socket) =>
 
     const setNickname = name =>
     {
-        socket.nickName = `${name}`
+        socket.nickName = name
         io.emit('chatroom:nickname_set', name)
     }
 
