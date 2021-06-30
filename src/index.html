@@ -64,9 +64,9 @@
                 }
             })
 
-            socket.on('chatroom:chat_message', msg => addChatMessage(msg))
-            socket.on('chatroom:join', logMsg => addChatMessage(logMsg))
-            socket.on('chatroom:leave', logMsg => addChatMessage(logMsg))
+            socket.on('chatroom:chat_message', (sender, msg) => addChatMessage(`${sender}: ${msg}`))
+            socket.on('chatroom:join', clientID => addChatMessage(`User ID ${clientID} joined`))
+            socket.on('chatroom:leave', clientID => addChatMessage(`User ID ${clientID} left`))
 
             addChatMessage = msg =>
             {
