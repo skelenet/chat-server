@@ -26,7 +26,7 @@ const cleanup = (io, clientSockets, done) =>
     done()
 }
 
-describe('Chatroom', () =>
+describe('Chatroom Server', () =>
 {
     describe('Connection Events', () =>
     {
@@ -57,6 +57,8 @@ describe('Chatroom', () =>
 
     describe('Chat Events', () =>
     {
+        jest.setTimeout(3000)
+
         it('should broadcast global join message when someone connects', done =>
         {
             const server = createServer()
@@ -122,6 +124,41 @@ describe('Chatroom', () =>
                 })
                 setTimeout(() => {
                     expect(msg).toBe(`User ID ${clientID} left`)
+                    cleanup(sio, [client, client2], done)
+                }, 300)
+            })
+        })
+
+        it('should listen for and emit chat messages back to clients', done =>
+        {
+            const server = createServer()
+            const sio = new Server(server)
+
+            server.listen(() =>
+            {
+                const client = createClient(server)
+                const client2 = createClient(server)
+                let clientID, msg = undefined
+
+                sio.on('connect', socket =>
+                {
+                    registerChatroomhandlers(sio, socket)
+
+                    client.emit('chatroom:connect')
+                    client2.on('chatroom:join', () =>
+                    {
+                        clientID = client.id
+
+                        setTimeout(() => client.emit('chatroom:chat_message', `Chat message from ${client.id}`), 50)
+                        client2.on('chatroom:chat_message', chatMsg =>
+                        {
+                            expect(chatMsg).toBeDefined()
+                            msg = chatMsg
+                        })
+                    })
+                })
+                setTimeout(() => {
+                    expect(msg).toBe(`Chat message from ${clientID}`)
                     cleanup(sio, [client, client2], done)
                 }, 300)
             })
