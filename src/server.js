@@ -6,9 +6,6 @@ const port = process.env.PORT || 3000
 
 app.use(express.static('public'))
 
-server.listen(port, () =>
-{
-    console.log(`Listening on *:${port}`)
-})
+server.listen(port, () => console.log(`Listening on *:${port}`))
 
 module.exports = { io }
