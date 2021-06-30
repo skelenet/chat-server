@@ -1,7 +1,7 @@
 module.exports = (io, socket) =>
 {
     const disconnect = () => io.emit('chatroom:leave', `User ID ${socket.id} left`)
-    const chatMessage = msg => io.emit('chatroom:chat_message', msg)
+    const chatMessage = msg => io.emit('chatroom:chat_message', `${socket.nickName || socket.id}: ${msg}`)
 
     const setNickname = name =>
     {

@@ -188,7 +188,7 @@ describe('Chatroom Server', () =>
                     })
                 })
                 setTimeout(() => {
-                    expect(msg).toBe(`Chat message from ${clientID}`)
+                    expect(msg).toBe(`${clientID}: Chat message from ${clientID}`)
                     cleanup(sio, [client, client2], done)
                 }, 300)
             })
