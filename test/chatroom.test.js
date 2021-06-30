@@ -179,12 +179,12 @@ describe('Chatroom Server', () =>
                     {
                         clientID = client.id
 
-                        setTimeout(() => client.emit('chatroom:chat_message', `Chat message from ${client.id}`), 50)
-                        client2.on('chatroom:chat_message', (senderName, chatMsg) =>
+                        setTimeout(() => client.emit('chatroom:send_global_msg', `Chat message from ${client.id}`), 50)
+                        client2.on('chatroom:global_msg_sent', (sender, chatMsg) =>
                         {
-                            expect(senderName).toBeDefined()
+                            expect(sender).toBeDefined()
                             expect(chatMsg).toBeDefined()
-                            msg = `${senderName}: ${chatMsg}`
+                            msg = `${sender.nickName || sender.id}: ${chatMsg}`
                         })
                     })
                 })

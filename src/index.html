@@ -45,7 +45,7 @@
                 e.preventDefault()
                 if(input.value)
                 {
-                    socket.emit('chatroom:chat_message', input.value)
+                    socket.emit('chatroom:send_global_msg', input.value)
                     input.value = ''
                 }
             })
@@ -64,7 +64,7 @@
                 }
             })
 
-            socket.on('chatroom:chat_message', (sender, msg) => addChatMessage(`${sender}: ${msg}`))
+            socket.on('chatroom:global_msg_sent', (sender, msg) => addChatMessage(`${sender.nickName || sender.id}: ${msg}`))
             socket.on('chatroom:join', clientID => addChatMessage(`User ID ${clientID} joined`))
             socket.on('chatroom:leave', clientID => addChatMessage(`User ID ${clientID} left`))
 
