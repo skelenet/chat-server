@@ -129,6 +129,36 @@ describe('Chatroom Server', () =>
             })
         })
 
+        it('should allow clients to set nicknames', done =>
+        {
+            const server = createServer()
+            const sio = new Server(server)
+
+            server.listen(() =>
+            {
+                const client = createClient(server)
+                const clientName = 'Bob'
+                let returnedName = undefined
+
+                sio.on('connect', socket =>
+                {
+                    registerChatroomhandlers(sio, socket)
+
+                    client.emit('chatroom:set_nickname', clientName)
+                    client.on('chatroom:nickname_set', name =>
+                    {
+                        expect(name).toBeDefined()
+                        returnedName = name
+                    })
+                })
+                setTimeout(() =>
+                {
+                    expect(returnedName).toBe(clientName)
+                    cleanup(sio, [client], done)
+                }, 300)
+            })
+        })
+
         it('should listen for and emit chat messages back to clients', done =>
         {
             const server = createServer()
