@@ -68,7 +68,7 @@ describe('Chatroom Server', () =>
             {
                 const client = createClient(server, { forceNew: true })
                 const client2 = createClient(server, { forceNew: true })
-                let msg = undefined
+                let joinedClientID = undefined
 
                 sio.on('connect', socket =>
                 {
@@ -77,18 +77,18 @@ describe('Chatroom Server', () =>
                     // Emulate connecting to chatroom with client1
                     client.emit('chatroom:connect')
 
-                    // Client2 listens for chatroom join event, should receive join message
-                    client2.once('chatroom:join', logMsg =>
+                    // Client2 listens for chatroom join event, should receive ID of client that joined
+                    client2.once('chatroom:join', id =>
                     {
-                        expect(logMsg).toBeDefined()
-                        msg = logMsg
+                        expect(id).toBeDefined()
+                        joinedClientID = id
                     })
                 })
                 // We need to wait for clients to finish listening to events and for
                 // the tests to finish before disconnecting server and clients.
                 // Otherwise, the tests will fail prematurely.
                 setTimeout(() => {
-                    expect(msg).toBe(`User ID ${client.id} joined`)
+                    expect(joinedClientID).toBe(client.id)
                     cleanup(sio, [client, client2], done)
                 }, 300)
             })
@@ -103,7 +103,7 @@ describe('Chatroom Server', () =>
             {
                 const client = createClient(server, { forceNew: true })
                 const client2 = createClient(server, { forceNew: true })
-                let clientID, msg = undefined
+                let leftClientID, msg = undefined
 
                 sio.on('connect', socket =>
                 {
@@ -112,18 +112,18 @@ describe('Chatroom Server', () =>
                     client.emit('chatroom:connect')
                     client2.on('chatroom:join', () =>
                     {
-                        clientID = client.id
+                        leftClientID = client.id
 
                         setTimeout(() => client.disconnect(), 50)
-                        client2.on('chatroom:leave', logMsg =>
+                        client2.on('chatroom:leave', id =>
                         {
-                            expect(logMsg).toBeDefined()
-                            msg = logMsg
+                            expect(id).toBeDefined()
+                            msg = `User ID ${id} left`
                         })
                     })
                 })
                 setTimeout(() => {
-                    expect(msg).toBe(`User ID ${clientID} left`)
+                    expect(msg).toBe(`User ID ${leftClientID} left`)
                     cleanup(sio, [client, client2], done)
                 }, 300)
             })
@@ -179,11 +179,12 @@ describe('Chatroom Server', () =>
                     {
                         clientID = client.id
 
-                        setTimeout(() => client.emit('chatroom:chat_message', `Chat message from ${client.id}`), 50)
-                        client2.on('chatroom:chat_message', chatMsg =>
+                        setTimeout(() => client.emit('chatroom:send_global_msg', `Chat message from ${client.id}`), 50)
+                        client2.on('chatroom:global_msg_sent', (sender, chatMsg) =>
                         {
+                            expect(sender).toBeDefined()
                             expect(chatMsg).toBeDefined()
-                            msg = chatMsg
+                            msg = `${sender.nickName || sender.id}: ${chatMsg}`
                         })
                     })
                 })
