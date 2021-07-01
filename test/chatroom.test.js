@@ -78,10 +78,10 @@ describe('Chatroom Server', () =>
                     client.emit('chatroom:connect')
 
                     // Client2 listens for chatroom join event, should receive ID of client that joined
-                    client2.once('chatroom:join', id =>
+                    client2.once('chatroom:join', res =>
                     {
-                        expect(id).toBeDefined()
-                        joinedClientID = id
+                        expect(res).toBeDefined()
+                        joinedClientID = res.id
                     })
                 })
                 // We need to wait for clients to finish listening to events and for
@@ -115,10 +115,10 @@ describe('Chatroom Server', () =>
                         leftClientID = client.id
 
                         setTimeout(() => client.disconnect(), 50)
-                        client2.on('chatroom:leave', id =>
+                        client2.on('chatroom:leave', res =>
                         {
-                            expect(id).toBeDefined()
-                            msg = `User ID ${id} left`
+                            expect(res).toBeDefined()
+                            msg = `User ID ${res.id} left`
                         })
                     })
                 })
@@ -145,10 +145,10 @@ describe('Chatroom Server', () =>
                     registerChatroomhandlers(sio, socket)
 
                     client.emit('chatroom:set_nickname', clientName)
-                    client.on('chatroom:nickname_set', name =>
+                    client.on('chatroom:nickname_set', res =>
                     {
-                        expect(name).toBeDefined()
-                        returnedName = name
+                        expect(res).toBeDefined()
+                        returnedName = res.nickName
                     })
                 })
                 setTimeout(() =>
@@ -180,11 +180,10 @@ describe('Chatroom Server', () =>
                         clientID = client.id
 
                         setTimeout(() => client.emit('chatroom:send_global_msg', `Chat message from ${client.id}`), 50)
-                        client2.on('chatroom:global_msg_sent', (sender, chatMsg) =>
+                        client2.on('chatroom:global_msg_sent', res =>
                         {
-                            expect(sender).toBeDefined()
-                            expect(chatMsg).toBeDefined()
-                            msg = `${sender.nickName || sender.id}: ${chatMsg}`
+                            expect(res).toBeDefined()
+                            msg = `${res.sender.nickName || res.sender.id}: ${res.msg}`
                         })
                     })
                 })
