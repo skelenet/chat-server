@@ -29,9 +29,9 @@ nicknameForm.addEventListener('submit', e =>
     }
 })
 
-socket.on('chatroom:global_msg_sent', (sender, msg) => addChatMessage(`${sender.nickName || sender.id}: ${msg}`))
-socket.on('chatroom:join', clientID => addChatMessage(`User ID ${clientID} joined`))
-socket.on('chatroom:leave', clientID => addChatMessage(`User ID ${clientID} left`))
+socket.on('chatroom:global_msg_sent', res => addChatMessage(`${res.sender.nickName || res.sender.id}: ${res.msg}`))
+socket.on('chatroom:join', res => addChatMessage(`User ID ${res.id} joined`))
+socket.on('chatroom:leave', res => addChatMessage(`User ID ${res.id} left`))
 
 addChatMessage = msg =>
 {
