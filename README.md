@@ -10,7 +10,7 @@ Install Yarn
 npm install -g yarn
 ```
 
-## Usage
+## Instructions
 Install dependencies
 ```sh
 yarn
