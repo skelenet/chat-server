@@ -15,7 +15,7 @@ const createClient = (server, endpoint, options) =>
     let addr = server.address()
     if(!addr) addr = server.listen().address()
 
-    const url = `http://localhost:${addr.port}${endpoint || ''}`
+    const url = `ws://localhost:${addr.port}${endpoint || ''}`
     return new Client(url, options)
 }
 
