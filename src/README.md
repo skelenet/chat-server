@@ -18,11 +18,11 @@ client.emit('chatroom:connect')
  * Second client listens for `chatroom:join` every time a client connects
  *
  * @listens chatroom:join
- * @param {func~string} id The ID of the client that joined
+ * @param {object} res Response payload containing ID of client that joined
  */
-client2.on('chatroom:join', id =>
+client2.on('chatroom:join', res =>
 {
-    console.log(`User ID ${id} joined`)
+    console.log(`User ID ${res.id} joined`)
 })
 ```
 
@@ -32,20 +32,20 @@ client2.on('chatroom:join', id =>
 
 ```js
 /**
- * Manually disconnect the client, which will also emit a `disconnect` event
+ * Manually disconnect client, which will also emit a `disconnect` event
  * to all clients
  */
 client.disconnect()
 
 /**
- * Second client listens for `chatroom:leave` after first client left
+ * Second client listens for `chatroom:leave` after first client leaves
  *
  * @listens chatroom:leave
- * @param {func~string} id The ID of the client that left
+ * @param {object} res Response payload containing ID of client that left
  */
-client2.on('chatroom:leave', id =>
+client2.on('chatroom:leave', res =>
 {
-    console.log(`User ID ${id} left`)
+    console.log(`User ID ${res.id} left`)
 })
 ```
 
@@ -66,12 +66,12 @@ client.emit('chatroom:send_global_msg', 'Hello World!')
  * Listens for `chatroom:global_msg_sent` event after sending global message
  *
  * @listens chatroom:global_msg_sent
- * @param {func~object} sender  Object that contains sender ID and nickname
- * @param {func~string} msg     The message that was sent
+ * @param {object} res Response payload containing sender object that has ID and nickname,
+ * and the message that was sent
  */
-client.on('chatroom:global_msg_sent', (sender, msg) =>
+client.on('chatroom:global_msg_sent', res =>
 {
-    console.log(`${sender.nickName || sender.id}: ${msg}`)
+    console.log(`${res.sender.nickName || res.sender.id}: ${res.msg}`)
 })
 ```
 
@@ -92,10 +92,10 @@ client.emit('chatroom:set_nickname', 'Bob')
  * Listens for `chatroom:nickname_set` event after setting nickname
  *
  * @listens chatroom:nickname_set
- * @param {func~string} name The nickname that was set
+ * @param {object} res Response payload containing nickname that was set
  */
-client.on('chatroom:nickname_set', name =>
+client.on('chatroom:nickname_set', res =>
 {
-    console.log(name)
+    console.log(res.nickName)
 })
 ```
