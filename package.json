@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node app.js",
     "dev": "nodemon app.js",
-    "test": "jest --watchAll --verbose --detectOpenHandles"
+    "test": "jest --verbose --coverage --passWithNoTests",
+    "test:dev": "jest --watchAll --verbose --detectOpenHandles"
   },
   "author": "RickyC0626",
   "license": "MIT",
