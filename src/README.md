@@ -1,4 +1,4 @@
-# Emitting and Receiving Chatroom Events
+# Emitting and Receiving Chat Events
 
 ## Simple Setup
 Connect chatroom client to server (TBA)
