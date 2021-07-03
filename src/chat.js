@@ -3,7 +3,10 @@ module.exports = (io, socket) =>
     // Notify all clients when someone leaves
     const disconnect = () => io.emit('chat:leave', { id: socket.id })
     // Send global message to all clients except sender
-    const sendGlobalMsg = msg => socket.broadcast.emit('chat:global_msg_sent', { sender: { nickName: socket.nickName, id: socket.id }, msg: msg })
+    const sendGlobalMsg = msg => socket.broadcast.emit('chat:global_message_sent',
+    {
+        sender: { nickName: socket.nickName, id: socket.id }, message: msg
+    })
 
     const setNickname = name =>
     {
@@ -18,7 +21,7 @@ module.exports = (io, socket) =>
         io.emit('chat:join', { id: socket.id })
 
         socket.on('disconnect', disconnect)
-        socket.on('chat:send_global_msg', sendGlobalMsg)
+        socket.on('chat:send_global_message', sendGlobalMsg)
     }
 
     socket.on('chat:set_nickname', setNickname)
