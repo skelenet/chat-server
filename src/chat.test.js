@@ -26,172 +26,169 @@ const cleanup = (io, clientSockets, done) =>
     done()
 }
 
-describe('Chat Server', () =>
+describe('Connection Events', () =>
 {
-    describe('Connection Events', () =>
+    it('connects to the backend via socket.io', done =>
     {
-        it('connects to the backend via socket.io', done =>
+        const server = createServer()
+        const sio = new Server(server)
+
+        server.listen(() =>
         {
-            const server = createServer()
-            const sio = new Server(server)
-
-            server.listen(() =>
+            const client = createClient(server)
+            sio.on('connect', socket =>
             {
-                const client = createClient(server)
-                sio.on('connect', socket =>
-                {
-                    // Make sure socket exists on connection
-                    expect(socket).toBeDefined()
+                // Make sure socket exists on connection
+                expect(socket).toBeDefined()
 
-                    // Confirm server-client handshake
-                    sio.emit('echo', 'Hello World!')
-                    client.once('echo', msg =>
-                    {
-                        expect(msg).toBe('Hello World!')
-                        cleanup(sio, [client], done)
-                    })
+                // Confirm server-client handshake
+                sio.emit('echo', 'Hello World!')
+                client.once('echo', msg =>
+                {
+                    expect(msg).toBe('Hello World!')
+                    cleanup(sio, [client], done)
                 })
             })
         })
     })
+})
 
-    describe('Chat Events', () =>
+describe('Chat Events', () =>
+{
+    jest.setTimeout(3000)
+
+    it('should broadcast global join message when someone connects', done =>
     {
-        jest.setTimeout(3000)
+        const server = createServer()
+        const sio = new Server(server)
 
-        it('should broadcast global join message when someone connects', done =>
+        server.listen(() =>
         {
-            const server = createServer()
-            const sio = new Server(server)
+            const client = createClient(server, { forceNew: true })
+            const client2 = createClient(server, { forceNew: true })
+            let joinedClientID = undefined
 
-            server.listen(() =>
+            sio.on('connect', socket =>
             {
-                const client = createClient(server, { forceNew: true })
-                const client2 = createClient(server, { forceNew: true })
-                let joinedClientID = undefined
+                registerChatroomhandlers(sio, socket)
 
-                sio.on('connect', socket =>
+                // Emulate connecting to chatroom with client1
+                client.emit('chatroom:connect')
+
+                // Client2 listens for chatroom join event, should receive ID of client that joined
+                client2.once('chatroom:join', res =>
                 {
-                    registerChatroomhandlers(sio, socket)
+                    expect(res).toBeDefined()
+                    joinedClientID = res.id
+                })
+            })
+            // We need to wait for clients to finish listening to events and for
+            // the tests to finish before disconnecting server and clients.
+            // Otherwise, the tests will fail prematurely.
+            setTimeout(() => {
+                expect(joinedClientID).toBe(client.id)
+                cleanup(sio, [client, client2], done)
+            }, 300)
+        })
+    })
 
-                    // Emulate connecting to chatroom with client1
-                    client.emit('chatroom:connect')
+    it('should broadcast global leave message when someone disconnects', done =>
+    {
+        const server = createServer()
+        const sio = new Server(server)
 
-                    // Client2 listens for chatroom join event, should receive ID of client that joined
-                    client2.once('chatroom:join', res =>
+        server.listen(() =>
+        {
+            const client = createClient(server, { forceNew: true })
+            const client2 = createClient(server, { forceNew: true })
+            let leftClientID, msg = undefined
+
+            sio.on('connect', socket =>
+            {
+                registerChatroomhandlers(sio, socket)
+
+                client.emit('chatroom:connect')
+                client2.on('chatroom:join', () =>
+                {
+                    leftClientID = client.id
+
+                    setTimeout(() => client.disconnect(), 50)
+                    client2.on('chatroom:leave', res =>
                     {
                         expect(res).toBeDefined()
-                        joinedClientID = res.id
+                        msg = `User ID ${res.id} left`
                     })
                 })
-                // We need to wait for clients to finish listening to events and for
-                // the tests to finish before disconnecting server and clients.
-                // Otherwise, the tests will fail prematurely.
-                setTimeout(() => {
-                    expect(joinedClientID).toBe(client.id)
-                    cleanup(sio, [client, client2], done)
-                }, 300)
             })
+            setTimeout(() => {
+                expect(msg).toBe(`User ID ${leftClientID} left`)
+                cleanup(sio, [client, client2], done)
+            }, 300)
         })
+    })
 
-        it('should broadcast global leave message when someone disconnects', done =>
+    it('should allow clients to set nicknames', done =>
+    {
+        const server = createServer()
+        const sio = new Server(server)
+
+        server.listen(() =>
         {
-            const server = createServer()
-            const sio = new Server(server)
+            const client = createClient(server)
+            const clientName = 'Bob'
+            let returnedName = undefined
 
-            server.listen(() =>
+            sio.on('connect', socket =>
             {
-                const client = createClient(server, { forceNew: true })
-                const client2 = createClient(server, { forceNew: true })
-                let leftClientID, msg = undefined
+                registerChatroomhandlers(sio, socket)
 
-                sio.on('connect', socket =>
+                client.emit('chatroom:set_nickname', clientName)
+                client.on('chatroom:nickname_set', res =>
                 {
-                    registerChatroomhandlers(sio, socket)
-
-                    client.emit('chatroom:connect')
-                    client2.on('chatroom:join', () =>
-                    {
-                        leftClientID = client.id
-
-                        setTimeout(() => client.disconnect(), 50)
-                        client2.on('chatroom:leave', res =>
-                        {
-                            expect(res).toBeDefined()
-                            msg = `User ID ${res.id} left`
-                        })
-                    })
+                    expect(res).toBeDefined()
+                    returnedName = res.nickName
                 })
-                setTimeout(() => {
-                    expect(msg).toBe(`User ID ${leftClientID} left`)
-                    cleanup(sio, [client, client2], done)
-                }, 300)
             })
-        })
-
-        it('should allow clients to set nicknames', done =>
-        {
-            const server = createServer()
-            const sio = new Server(server)
-
-            server.listen(() =>
+            setTimeout(() =>
             {
-                const client = createClient(server)
-                const clientName = 'Bob'
-                let returnedName = undefined
+                expect(returnedName).toBe(clientName)
+                cleanup(sio, [client], done)
+            }, 300)
+        })
+    })
 
-                sio.on('connect', socket =>
+    it('should listen for and emit chat messages back to clients', done =>
+    {
+        const server = createServer()
+        const sio = new Server(server)
+
+        server.listen(() =>
+        {
+            const client = createClient(server)
+            const client2 = createClient(server)
+            let clientID, msg = undefined
+
+            sio.on('connect', socket =>
+            {
+                registerChatroomhandlers(sio, socket)
+
+                client.emit('chatroom:connect')
+                client2.on('chatroom:join', () =>
                 {
-                    registerChatroomhandlers(sio, socket)
+                    clientID = client.id
 
-                    client.emit('chatroom:set_nickname', clientName)
-                    client.on('chatroom:nickname_set', res =>
+                    setTimeout(() => client.emit('chatroom:send_global_msg', `Chat message from ${client.id}`), 50)
+                    client2.on('chatroom:global_msg_sent', res =>
                     {
                         expect(res).toBeDefined()
-                        returnedName = res.nickName
+                        msg = `${res.sender.nickName || res.sender.id}: ${res.msg}`
                     })
                 })
-                setTimeout(() =>
-                {
-                    expect(returnedName).toBe(clientName)
-                    cleanup(sio, [client], done)
-                }, 300)
             })
-        })
-
-        it('should listen for and emit chat messages back to clients', done =>
-        {
-            const server = createServer()
-            const sio = new Server(server)
-
-            server.listen(() =>
-            {
-                const client = createClient(server)
-                const client2 = createClient(server)
-                let clientID, msg = undefined
-
-                sio.on('connect', socket =>
-                {
-                    registerChatroomhandlers(sio, socket)
-
-                    client.emit('chatroom:connect')
-                    client2.on('chatroom:join', () =>
-                    {
-                        clientID = client.id
-
-                        setTimeout(() => client.emit('chatroom:send_global_msg', `Chat message from ${client.id}`), 50)
-                        client2.on('chatroom:global_msg_sent', res =>
-                        {
-                            expect(res).toBeDefined()
-                            msg = `${res.sender.nickName || res.sender.id}: ${res.msg}`
-                        })
-                    })
-                })
-                setTimeout(() => {
-                    expect(msg).toBe(`${clientID}: Chat message from ${clientID}`)
-                    cleanup(sio, [client, client2], done)
-                }, 300)
-            })
+            setTimeout(() => {
+                expect(msg).toBe(`${clientID}: Chat message from ${clientID}`)
+                cleanup(sio, [client, client2], done)
+            }, 300)
         })
     })
 })
