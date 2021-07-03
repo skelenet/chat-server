@@ -2,7 +2,7 @@ const { createServer } = require('http')
 const { Server } = require('socket.io')
 const Client = require('socket.io-client')
 
-const registerChatroomhandlers = require('./chatroomHandler')
+const registerChatroomhandlers = require('./chat')
 
 const createClient = (server, endpoint, options) =>
 {
@@ -26,7 +26,7 @@ const cleanup = (io, clientSockets, done) =>
     done()
 }
 
-describe('Chatroom Server', () =>
+describe('Chat Server', () =>
 {
     describe('Connection Events', () =>
     {
