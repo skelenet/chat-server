@@ -177,11 +177,11 @@ describe('Chat Events', () =>
                 {
                     clientID = client.id
 
-                    setTimeout(() => client.emit('chat:send_global_msg', `Chat message from ${client.id}`), 50)
-                    client2.on('chat:global_msg_sent', res =>
+                    setTimeout(() => client.emit('chat:send_global_message', `Chat message from ${client.id}`), 50)
+                    client2.on('chat:global_message_sent', res =>
                     {
                         expect(res).toBeDefined()
-                        msg = `${res.sender.nickName || res.sender.id}: ${res.msg}`
+                        msg = `${res.sender.nickName || res.sender.id}: ${res.message}`
                     })
                 })
             })
