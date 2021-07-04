@@ -164,8 +164,8 @@ describe('Chat Events', () =>
 
         server.listen(() =>
         {
-            const client = createClient(server)
-            const client2 = createClient(server)
+            const client = createClient(server, { forceNew: true })
+            const client2 = createClient(server, { forceNew: true })
             let clientID, msg = undefined
 
             sio.on('connect', socket =>
@@ -187,6 +187,41 @@ describe('Chat Events', () =>
             })
             setTimeout(() => {
                 expect(msg).toBe(`${clientID}: Chat message from ${clientID}`)
+                cleanup(sio, [client, client2], done)
+            }, 300)
+        })
+    })
+
+    it('should keep track of users that are currently typing', done =>
+    {
+        const server = createServer()
+        const sio = new Server(server)
+
+        server.listen(() =>
+        {
+            const client = createClient(server, { forceNew: true })
+            const client2 = createClient(server, { forceNew: true })
+            let msg = undefined
+
+            sio.on('connect', socket =>
+            {
+                registerChatroomhandlers(sio, socket)
+
+                client.emit('chat:connect')
+                client2.on('chat:join', () =>
+                {
+                    client.emit('chat:set_nickname', 'Bob')
+
+                    setTimeout(() => client.emit('chat:user_typing'), 50)
+                    client2.on('chat:user_typing', user =>
+                    {
+                        expect(user).toBeDefined()
+                        msg = `${user.nickName} is typing...`
+                    })
+                })
+            })
+            setTimeout(() => {
+                expect(msg).toBe('Bob is typing...')
                 cleanup(sio, [client, client2], done)
             }, 300)
         })

@@ -15,6 +15,11 @@ module.exports = (io, socket) =>
         io.to(socket.id).emit('chat:nickname_set', { nickName: name })
     }
 
+    const userTyping = () =>
+    {
+        socket.broadcast.emit('chat:user_typing', { nickName: socket.nickName, id: socket.id })
+    }
+
     const connect = () =>
     {
         // Notify all clients when someone joins
@@ -25,5 +30,6 @@ module.exports = (io, socket) =>
     }
 
     socket.on('chat:set_nickname', setNickname)
+    socket.on('chat:user_typing', userTyping)
     socket.on('chat:connect', connect)
 }
