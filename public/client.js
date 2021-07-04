@@ -16,6 +16,11 @@ form.addEventListener('submit', e =>
     }
 })
 
+form.addEventListener('keydown', e =>
+{
+    socket.emit('chat:typing')
+})
+
 var nicknameForm = document.getElementById('nicknameForm')
 var nickname = document.getElementById('nickname')
 
@@ -42,3 +47,29 @@ addChatMessage = msg =>
     messages.appendChild(chatItem)
     window.scrollTo(0, document.body.scrollHeight)
 }
+
+
+const generateMessage = names =>
+{
+    switch(names.length)
+    {
+        case 0:
+            return ''
+        case 1:
+            return `${names[0]} is typing...`
+        case 2:
+            return `${names[0]} and ${names[1]} are typing...`
+        case 3:
+            return `${names[0]}, ${names[1]} and ${names[2]} are typing...`
+        default:
+            return 'Multiple people are typing...'
+    }
+}
+
+var usersTyping = document.getElementById('usersTyping')
+
+socket.on('chat:user_typing', users =>
+{
+    const names = Object.values(users)
+    usersTyping.textContent = generateMessage(names)
+})

@@ -19,7 +19,7 @@ module.exports = (io, socket) =>
 
     const typing = () =>
     {
-        usersTyping[socket.id] = socket.nickName
+        usersTyping[socket.id] = socket.nickName || socket.id
         socket.broadcast.emit('chat:user_typing', usersTyping)
     }
 
