@@ -1,3 +1,5 @@
+let usersTyping = {}
+
 module.exports = (io, socket) =>
 {
     // Notify all clients when someone leaves
@@ -15,9 +17,10 @@ module.exports = (io, socket) =>
         io.to(socket.id).emit('chat:nickname_set', { nickName: name })
     }
 
-    const userTyping = () =>
+    const typing = () =>
     {
-        socket.broadcast.emit('chat:user_typing', { nickName: socket.nickName, id: socket.id })
+        usersTyping[socket.id] = socket.nickName
+        socket.broadcast.emit('chat:user_typing', usersTyping)
     }
 
     const connect = () =>
@@ -30,6 +33,6 @@ module.exports = (io, socket) =>
     }
 
     socket.on('chat:set_nickname', setNickname)
-    socket.on('chat:user_typing', userTyping)
+    socket.on('chat:typing', typing)
     socket.on('chat:connect', connect)
 }

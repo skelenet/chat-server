@@ -192,38 +192,63 @@ describe('Chat Events', () =>
         })
     })
 
-    it('should keep track of users that are currently typing', done =>
+    describe('Chat Presence', () =>
     {
-        const server = createServer()
-        const sio = new Server(server)
-
-        server.listen(() =>
+        const generateMessage = names =>
         {
-            const client = createClient(server, { forceNew: true })
-            const client2 = createClient(server, { forceNew: true })
-            let msg = undefined
-
-            sio.on('connect', socket =>
+            switch(names.length)
             {
-                registerChatroomhandlers(sio, socket)
+                case 0:
+                    return ''
+                case 1:
+                    return `${names[0]} is typing...`
+                case 2:
+                    return `${names[0]} and ${names[1]} are typing...`
+                case 3:
+                    return `${names[0]}, ${names[1]} and ${names[2]} are typing...`
+                default:
+                    return 'Multiple people are typing...'
+            }
+        }
 
-                client.emit('chat:connect')
-                client2.on('chat:join', () =>
+        it('should keep track of users that are currently typing', done =>
+        {
+            const server = createServer()
+            const sio = new Server(server)
+
+            server.listen(() =>
+            {
+                const client = createClient(server, { forceNew: true })
+                const client2 = createClient(server, { forceNew: true })
+                const client3 = createClient(server, { forceNew: true })
+                let msg = undefined
+
+                sio.on('connect', socket =>
                 {
-                    client.emit('chat:set_nickname', 'Bob')
+                    registerChatroomhandlers(sio, socket)
 
-                    setTimeout(() => client.emit('chat:user_typing'), 50)
-                    client2.on('chat:user_typing', user =>
+                    client.emit('chat:connect')
+                    client2.on('chat:join', () =>
                     {
-                        expect(user).toBeDefined()
-                        msg = `${user.nickName} is typing...`
+                        client.emit('chat:set_nickname', 'Bob')
+                        client3.emit('chat:set_nickname', 'Tom')
+
+                        setTimeout(() => client.emit('chat:typing'), 50)
+                        setTimeout(() => client3.emit('chat:typing'), 50)
+                        client2.on('chat:user_typing', users =>
+                        {
+                            expect(users).toBeDefined()
+
+                            const names = Object.values(users)
+                            msg = generateMessage(names)
+                        })
                     })
                 })
+                setTimeout(() => {
+                    expect(msg).toBe('Bob and Tom are typing...')
+                    cleanup(sio, [client, client2], done)
+                }, 300)
             })
-            setTimeout(() => {
-                expect(msg).toBe('Bob is typing...')
-                cleanup(sio, [client, client2], done)
-            }, 300)
         })
     })
 })
