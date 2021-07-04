@@ -235,7 +235,7 @@ describe('Chat Events', () =>
 
                         setTimeout(() => client.emit('chat:typing'), 50)
                         setTimeout(() => client3.emit('chat:typing'), 50)
-                        client2.on('chat:user_typing', users =>
+                        client2.on('chat:is_typing', users =>
                         {
                             expect(users).toBeDefined()
 
@@ -272,7 +272,7 @@ describe('Chat Events', () =>
                         client.emit('chat:set_nickname', 'Jill')
 
                         setTimeout(() => client.emit('chat:typing'), 50)
-                        client2.on('chat:user_typing', users =>
+                        client2.on('chat:is_typing', users =>
                         {
                             expect(users).toBeDefined()
 
@@ -280,8 +280,8 @@ describe('Chat Events', () =>
                             msg = generateMessage(names)
                         })
                         
-                        setTimeout(() => client.emit('chat:not_typing'), 50)
-                        client2.on('chat:user_not_typing', users =>
+                        setTimeout(() => client.emit('chat:stop_typing'), 50)
+                        client2.on('chat:stopped_typing', users =>
                         {
                             expect(users).toBeDefined()
 
