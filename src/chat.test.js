@@ -246,6 +246,52 @@ describe('Chat Events', () =>
                 })
                 setTimeout(() => {
                     expect(msg).toBe('Bob and Tom are typing...')
+                    cleanup(sio, [client, client2, client3], done)
+                }, 300)
+            })
+        })
+
+        it('should not keep track of users if they are not typing', done =>
+        {
+            const server = createServer()
+            const sio = new Server(server)
+
+            server.listen(() =>
+            {
+                const client = createClient(server, { forceNew: true })
+                const client2 = createClient(server, { forceNew: true })
+                let msg = undefined
+
+                sio.on('connect', socket =>
+                {
+                    registerChatroomhandlers(sio, socket)
+
+                    client.emit('chat:connect')
+                    client2.on('chat:join', () =>
+                    {
+                        client.emit('chat:set_nickname', 'Jill')
+
+                        setTimeout(() => client.emit('chat:typing'), 50)
+                        client2.on('chat:user_typing', users =>
+                        {
+                            expect(users).toBeDefined()
+
+                            const names = Object.values(users)
+                            msg = generateMessage(names)
+                        })
+                        
+                        setTimeout(() => client.emit('chat:not_typing'), 50)
+                        client2.on('chat:user_not_typing', users =>
+                        {
+                            expect(users).toBeDefined()
+
+                            const names = Object.values(users)
+                            msg = generateMessage(names)
+                        })
+                    })
+                })
+                setTimeout(() => {
+                    expect(msg).toBe('')
                     cleanup(sio, [client, client2], done)
                 }, 300)
             })

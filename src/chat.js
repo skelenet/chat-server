@@ -3,7 +3,12 @@ let usersTyping = {}
 module.exports = (io, socket) =>
 {
     // Notify all clients when someone leaves
-    const disconnect = () => io.emit('chat:leave', { id: socket.id })
+    const disconnect = () =>
+    {
+        usersTyping = {}
+        io.emit('chat:leave', { id: socket.id })
+    }
+
     // Send global message to all clients except sender
     const sendGlobalMsg = msg => socket.broadcast.emit('chat:global_message_sent',
     {
@@ -23,6 +28,12 @@ module.exports = (io, socket) =>
         socket.broadcast.emit('chat:user_typing', usersTyping)
     }
 
+    const notTyping = () =>
+    {
+        delete usersTyping[socket.id]
+        socket.broadcast.emit('chat:user_not_typing', usersTyping)
+    }
+
     const connect = () =>
     {
         // Notify all clients when someone joins
@@ -34,5 +45,6 @@ module.exports = (io, socket) =>
 
     socket.on('chat:set_nickname', setNickname)
     socket.on('chat:typing', typing)
+    socket.on('chat:not_typing', notTyping)
     socket.on('chat:connect', connect)
 }
